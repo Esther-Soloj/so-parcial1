@@ -43,6 +43,7 @@ public class frmMain extends javax.swing.JFrame {
         });
         hiloReloj.start(); // Iniciar el hilo
     }
+        // Esther Soloj 
         // actualiza el label cada milisegundo
         // Método para mostrar la hora del sistema
     public void mostrarHora() {
