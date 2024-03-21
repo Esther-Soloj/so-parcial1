@@ -6,58 +6,55 @@ package main;
 
 import classes.*;
 import java.io.IOException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
 import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
  * @author Miguel Matul <https://github.com/MigueMat4>
  */
 public class frmMain extends javax.swing.JFrame {
-    
+
     Personaje sw_personaje; // personaje que se descargará de la API
     ConectorAPI buscador = new ConectorAPI(); // clase que conecta a la API
     
-    /**
-     * Creates new form frmMain
-     */
     public frmMain() {
         initComponents();
+        iniciarReloj(); // Iniciar el hilo para mostrar la hora del sistema
     }
     
-    // clase para ver la hora del sistema
-    public class Reloj {
-        Calendar calendario;
-        
-        // actualiza el label cada milisegundo
-        public void mostrarHora() {
+    // Método para iniciar el hilo del reloj
+    private void iniciarReloj() {
+        Thread hiloReloj = new Thread(() -> {
             while (true) {
-                String horaSistema = "";
-                calendario = Calendar.getInstance();
-                if (calendario.get(Calendar.HOUR_OF_DAY)<10)
-                    horaSistema += String.valueOf("0"+calendario.get(Calendar.HOUR_OF_DAY)) + ":";
-                else
-                    horaSistema += String.valueOf(calendario.get(Calendar.HOUR_OF_DAY)) + ":";
-                if (calendario.get(Calendar.MINUTE)<10)
-                    horaSistema += String.valueOf("0"+calendario.get(Calendar.MINUTE)) + ":";
-                else
-                    horaSistema += String.valueOf(calendario.get(Calendar.MINUTE)) + ":";
-                if (calendario.get(Calendar.SECOND)<10)
-                    horaSistema += String.valueOf("0"+calendario.get(Calendar.SECOND)) + ":";
-                else
-                    horaSistema += String.valueOf(calendario.get(Calendar.SECOND)) + ":";
-                horaSistema += String.valueOf(calendario.get(Calendar.MILLISECOND)) + " hrs";
-                lblHoraSistema.setText(horaSistema);
+                mostrarHora();
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(1000); // Esperar un segundo antes de actualizar la hora
                 } catch (InterruptedException ex) {
                     Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-        }
+        });
+        hiloReloj.start(); // Iniciar el hilo
     }
-
+        // actualiza el label cada milisegundo
+        // Método para mostrar la hora del sistema
+    public void mostrarHora() {
+        Calendar calendario = Calendar.getInstance();
+        int hora = calendario.get(Calendar.HOUR_OF_DAY);
+        int minuto = calendario.get(Calendar.MINUTE);
+        int segundo = calendario.get(Calendar.SECOND);
+        int milisegundo = calendario.get(Calendar.MILLISECOND);
+        
+        String horaSistema = String.format("%02d:%02d:%02d:%03d hrs", hora, minuto, segundo, milisegundo);
+        lblHoraSistema.setText(horaSistema);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -148,14 +145,16 @@ public class frmMain extends javax.swing.JFrame {
 
     private void btnIniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciarActionPerformed
         // TODO add your handling code here:
-        try {
-            sw_personaje = buscador.buscarPersonaje();
-            txtPersonaje.setText(sw_personaje.getName());
-        } catch (IOException ex) {
-            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    // Iniciar el hilo para buscar el personaje en la API
+        Thread hiloBusqueda = new Thread(() -> {
+            try {
+                sw_personaje = buscador.buscarPersonaje();
+                txtPersonaje.setText(sw_personaje.getName());
+            } catch (IOException | InterruptedException ex) {
+                Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        hiloBusqueda.start(); // Iniciar el hilo
     }//GEN-LAST:event_btnIniciarActionPerformed
 
     /**
